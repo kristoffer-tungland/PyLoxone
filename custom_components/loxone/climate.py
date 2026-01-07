@@ -24,6 +24,7 @@ from .const import CONF_HVAC_AUTO_MODE, SENDDOMAIN
 from .helpers import (add_room_and_cat_to_value_values, get_all,
                       get_or_create_device)
 from .miniserver import get_miniserver_from_hass
+from .sensor import LoxoneSensor
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -89,6 +90,28 @@ async def async_setup_entry(
             }
         )
         entities.append(LoxoneRoomControllerV2(**climate))
+        humidity_state_key = next(
+            (
+                key
+                for key in ("humidity", "humidityActual")
+                if key in climate.get("states", {})
+            ),
+            None,
+        )
+        if humidity_state_key is not None:
+            humidity = {
+                "parent_id": climate["uuidAction"],
+                "uuidAction": climate["states"][humidity_state_key],
+                "type": "analog",
+                "room": climate.get("room", ""),
+                "cat": climate.get("cat", ""),
+                "name": f"{climate['name']} - Humidity",
+                "details": {"format": "%.1f%"},
+                "device_class": "humidity",
+                "async_add_devices": async_add_entities,
+                "config_entry": config_entry,
+            }
+            entities.append(LoxoneSensor(**humidity))
 
     for climate in get_all(loxconfig, "IRoomController"):
         climate = add_room_and_cat_to_value_values(loxconfig, climate)
