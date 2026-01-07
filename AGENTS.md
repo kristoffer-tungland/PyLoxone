@@ -4,6 +4,7 @@ This repository contains a Home Assistant integration that binds to the **Loxone
 
 ## Documentation
 - Loxone Miniserver API reference: https://www.loxone.com/wp-content/uploads/datasheets/CommunicatingWithMiniserver.pdf
+- Structure-File (LoxAPP3.json) reference: https://www.loxone.com/wp-content/uploads/datasheets/StructureFile.pdf
 
 ## Coding Style
 - **Python style**: follow `ruff.toml` for linting/formatting rules.
