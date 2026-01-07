@@ -452,6 +452,15 @@ class LoxoneMeterSensor(LoxoneSensor, SensorEntity):
             self._attr_device_class = SensorDeviceClass.POWER
             self._attr_state_class = SensorStateClass.MEASUREMENT
 
+    @property
+    def extra_state_attributes(self):
+        """Return device specific state attributes."""
+        return {
+            **self._attr_extra_state_attributes,
+            "device_type": self.type + "_sensor",
+            "meter_state": self._meter_state,
+        }
+
     @staticmethod
     def create_DeviceInfo_from_sensor(sensor) -> DeviceInfo:
         try:
