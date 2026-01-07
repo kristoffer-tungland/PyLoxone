@@ -212,6 +212,7 @@ async def async_setup_entry(
                     "cat": sensor.get("cat", ""),
                     "name": f"{sensor['name']} {name_suffix}",
                     "details": {"format": sensor["details"][format_key]},
+                    "meter_state": state_key,
                     "async_add_devices": async_add_entities,
                     "config_entry": config_entry,
                 }
@@ -439,6 +440,26 @@ class LoxoneMeterSensor(LoxoneSensor, SensorEntity):
         device_info = kwargs.get("device_info", None)
         if device_info:
             self._attr_device_info = device_info
+        self._meter_state = kwargs.get("meter_state")
+        self._apply_meter_classifications()
+
+    def _apply_meter_classifications(self) -> None:
+        unit = (self._attr_native_unit_of_measurement or "").lower()
+        if self._meter_state in {"total", "totalNeg"} and unit in {"kwh", "wh"}:
+            self._attr_device_class = SensorDeviceClass.ENERGY
+            self._attr_state_class = SensorStateClass.TOTAL_INCREASING
+        elif self._meter_state == "actual" and unit in {"kw", "w"}:
+            self._attr_device_class = SensorDeviceClass.POWER
+            self._attr_state_class = SensorStateClass.MEASUREMENT
+
+    @property
+    def extra_state_attributes(self):
+        """Return device specific state attributes."""
+        return {
+            **self._attr_extra_state_attributes,
+            "device_type": self.type + "_sensor",
+            "meter_state": self._meter_state,
+        }
 
     @staticmethod
     def create_DeviceInfo_from_sensor(sensor) -> DeviceInfo:
